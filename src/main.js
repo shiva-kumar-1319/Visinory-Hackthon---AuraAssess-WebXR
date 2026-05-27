@@ -26,7 +26,6 @@ class AppController {
     this.isEvaluating = false;
 
     this.initUI();
-    this.initOrientationSensors();
   }
 
   initUI() {
@@ -43,19 +42,6 @@ class AppController {
         }
       });
     }
-  }
-
-  initOrientationSensors() {
-    window.addEventListener('deviceorientation', (event) => {
-      if (this.sceneEngine && this.sceneEngine.isFallbackMode && !this.sceneEngine.isAnchored) {
-        // Map pitch (beta) and yaw (alpha) rotation to camera rotation
-        const alpha = event.alpha ? THREE.MathUtils.degToRad(event.alpha) : 0;
-        const beta = event.beta ? THREE.MathUtils.degToRad(event.beta) : 0;
-        
-        // Simple perspective rotation to follow device orientation
-        this.sceneEngine.camera.rotation.set(beta - Math.PI / 2, 0, alpha);
-      }
-    });
   }
 
   async startSession() {

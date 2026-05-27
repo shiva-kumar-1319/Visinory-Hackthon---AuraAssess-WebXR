@@ -97,6 +97,9 @@ export class SceneEngine {
   async startFallbackCameraMode() {
     this.isFallbackMode = true;
     this.isAnchored = false;
+    
+    // Disable WebXR overrides on the renderer so standard camera updates are respected
+    this.renderer.xr.enabled = false;
 
     // Create full screen background video element for camera feed
     this.videoElement = document.createElement('video');
@@ -118,7 +121,7 @@ export class SceneEngine {
     this.container.style.zIndex = '2';
     this.renderer.setClearColor(0x000000, 0);
 
-    // Request back-facing camera streams
+    // Request back-facing camera streams with constraint fallbacks
     try {
       const constraints = {
         video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
@@ -126,8 +129,14 @@ export class SceneEngine {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       this.videoElement.srcObject = stream;
     } catch (err) {
-      console.warn("Camera hardware access denied or unavailable:", err);
-      this.renderer.setClearColor(0x0b0f19, 1); // Restore solid background
+      console.warn("First camera constraint failed, retrying with basic constraints:", err);
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        this.videoElement.srcObject = stream;
+      } catch (retryErr) {
+        console.error("Camera hardware access denied:", retryErr);
+        this.renderer.setClearColor(0x0b0f19, 1); // Restore solid background
+      }
     }
 
     // Set up standard 3D reticle directly in front of the camera view
