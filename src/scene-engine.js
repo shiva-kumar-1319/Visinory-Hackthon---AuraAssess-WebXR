@@ -25,6 +25,8 @@ export class SceneEngine {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setClearColor(0x000000, 0);
+    this.renderer.setClearAlpha(0);
     this.renderer.xr.enabled = true;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -128,14 +130,27 @@ export class SceneEngine {
       };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       this.videoElement.srcObject = stream;
+      await this.videoElement.play();
     } catch (err) {
       console.warn("First camera constraint failed, retrying with basic constraints:", err);
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         this.videoElement.srcObject = stream;
+        await this.videoElement.play();
       } catch (retryErr) {
         console.error("Camera hardware access denied:", retryErr);
         this.renderer.setClearColor(0x0b0f19, 1); // Restore solid background
+        
+        // Output detailed permission/hardware diagnostic feedback inside the UI
+        const prompt = document.getElementById('reticle-indicator');
+        if (prompt) {
+          const text = prompt.querySelector('p');
+          if (text) {
+            text.innerHTML = `<strong>Camera Error:</strong> ${retryErr.name} (${retryErr.message}).<br>Please clear browser permission blocks for this site.`;
+            prompt.className = "self-center flex flex-col items-center gap-3 text-center max-w-sm";
+            text.className = "text-xs font-semibold bg-rose-950/90 px-4 py-2.5 rounded-xl border border-rose-800 text-rose-200 shadow-xl pointer-events-auto leading-relaxed";
+          }
+        }
       }
     }
 
