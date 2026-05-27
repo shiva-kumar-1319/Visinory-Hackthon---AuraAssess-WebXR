@@ -34,7 +34,7 @@ class AppController {
     const manualBtn = document.getElementById('manual-capture-btn');
     if (manualBtn) {
       manualBtn.addEventListener('click', (event) => {
-        event.stopPropagation(); // Avoid triggering placement click
+        event.stopPropagation(); // Avoid triggering placement touch
         if (this.sceneEngine && this.sceneEngine.isAnchored) {
           this.executeVisualCapture();
         } else {
@@ -61,6 +61,28 @@ class AppController {
     this.sceneEngine = new SceneEngine();
     await this.sceneEngine.startWebXR();
     
+    // Bind touch/click events directly to canvas-container to resolve iOS Safari click bubbling issues
+    const container = document.getElementById('canvas-container');
+    if (container) {
+      const handlePlacement = (event) => {
+        if (this.sceneEngine && !this.sceneEngine.isAnchored) {
+          const se = this.sceneEngine;
+          if (se.isFallbackMode || (se.xrSession && se.reticle.visible)) {
+            se.buildIndustrialPumpModel();
+            this.currentStepIndex = 1;
+            document.getElementById('step-display').innerText = `Step 2: ${this.steps[1]}`;
+          }
+        }
+      };
+
+      container.addEventListener('click', handlePlacement);
+      container.addEventListener('touchstart', (event) => {
+        if (event.touches.length === 1) {
+          handlePlacement(event);
+        }
+      }, { passive: true });
+    }
+
     // Hook stabilization event bindings
     this.stabilityDetector.onStabilityChange = this.onStabilityStateChange.bind(this);
     
@@ -232,21 +254,5 @@ class AppController {
 
 // Global invocation entry hook
 window.addEventListener('DOMContentLoaded', () => {
-  // Setup hit-testing interaction target for anchoring the spatial pump mesh
-  window.addEventListener('click', (event) => {
-    // Avoid registration if start button, key input, or manual capture button was clicked
-    if (event.target && (event.target.id === 'start-btn' || event.target.id === 'api-key-input' || event.target.id === 'manual-capture-btn')) {
-      return;
-    }
-    if (window.app && window.app.sceneEngine) {
-      const se = window.app.sceneEngine;
-      if (!se.isAnchored && (se.isFallbackMode || (se.xrSession && se.reticle.visible))) {
-        se.buildIndustrialPumpModel();
-        window.app.currentStepIndex = 1;
-        document.getElementById('step-display').innerText = `Step 2: ${window.app.steps[1]}`;
-      }
-    }
-  });
-
   window.app = new AppController();
 });
