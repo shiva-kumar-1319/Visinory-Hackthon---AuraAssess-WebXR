@@ -15,6 +15,7 @@ export class SceneEngine {
     this.lightProbe = null;
     this.isFallbackMode = false;
     this.videoElement = null;
+    this.particlesMesh = null;
 
     this.initRenderer();
     this.setupScene();
@@ -139,18 +140,7 @@ export class SceneEngine {
         await this.videoElement.play();
       } catch (retryErr) {
         console.error("Camera hardware access denied:", retryErr);
-        this.renderer.setClearColor(0x0b0f19, 1); // Restore solid background
-        
-        // Output detailed permission/hardware diagnostic feedback inside the UI
-        const prompt = document.getElementById('reticle-indicator');
-        if (prompt) {
-          const text = prompt.querySelector('p');
-          if (text) {
-            text.innerHTML = `<strong>Camera Error:</strong> ${retryErr.name} (${retryErr.message}).<br>Please clear browser permission blocks for this site.`;
-            prompt.className = "self-center flex flex-col items-center gap-3 text-center max-w-sm";
-            text.className = "text-xs font-semibold bg-rose-950/90 px-4 py-2.5 rounded-xl border border-rose-800 text-rose-200 shadow-xl pointer-events-auto leading-relaxed";
-          }
-        }
+        this.setupSimulatedWorkspace();
       }
     }
 
@@ -159,18 +149,58 @@ export class SceneEngine {
     this.reticle.rotation.x = -Math.PI / 2.5;
     this.reticle.visible = true;
 
-    // Add a helper grid to visualize space
-    const gridHelper = new THREE.GridHelper(10, 10, 0x4f46e5, 0x1e293b);
+    // Update screen instructions if not modified by simulated workspace mode
+    const prompt = document.getElementById('reticle-indicator');
+    if (prompt && !this.particlesMesh) {
+      prompt.classList.remove('hidden');
+      const text = prompt.querySelector('p');
+      if (text) text.innerText = "Tap screen to place pump on your desk";
+    }
+  }
+
+  setupSimulatedWorkspace() {
+    if (this.videoElement) {
+      this.videoElement.style.display = 'none';
+    }
+
+    // Set a high-fidelity dark blue holographic background
+    this.renderer.setClearColor(0x070b13, 1);
+
+    // Add visual grid layout helper
+    const gridHelper = new THREE.GridHelper(10, 20, 0x4f46e5, 0x1e293b);
     gridHelper.position.y = -0.5;
     gridHelper.position.z = -1.2;
     this.scene.add(gridHelper);
 
-    // Update screen instructions
+    // Add visual dust particle simulation
+    const particleGeo = new THREE.BufferGeometry();
+    const particleCount = 200;
+    const positions = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount * 3; i += 3) {
+      positions[i] = (Math.random() - 0.5) * 5;
+      positions[i+1] = (Math.random() - 0.5) * 3;
+      positions[i+2] = (Math.random() - 0.5) * 5 - 1.2;
+    }
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particleMat = new THREE.PointsMaterial({
+      color: 0x6366f1,
+      size: 0.02,
+      transparent: true,
+      opacity: 0.5
+    });
+    this.particlesMesh = new THREE.Points(particleGeo, particleMat);
+    this.scene.add(this.particlesMesh);
+
+    // Update HUD indicator text with fallback state
     const prompt = document.getElementById('reticle-indicator');
     if (prompt) {
       prompt.classList.remove('hidden');
       const text = prompt.querySelector('p');
-      if (text) text.innerText = "Tap screen to place pump on your desk";
+      if (text) {
+        text.innerHTML = `<strong>Camera Disabled:</strong> Running Simulated Workspace.<br>Tap screen to place pump on virtual desk.`;
+        prompt.className = "self-center flex flex-col items-center gap-3 text-center max-w-sm";
+        text.className = "text-xs font-semibold bg-indigo-950/90 px-4 py-2.5 rounded-xl border border-indigo-800 text-indigo-200 shadow-xl pointer-events-auto leading-relaxed";
+      }
     }
   }
 
@@ -227,6 +257,9 @@ export class SceneEngine {
     if (this.isFallbackMode) {
       if (this.isAnchored && this.shaftMesh) {
         this.shaftMesh.rotation.y += 0.02;
+      }
+      if (this.particlesMesh) {
+        this.particlesMesh.rotation.y += 0.002;
       }
       return;
     }
