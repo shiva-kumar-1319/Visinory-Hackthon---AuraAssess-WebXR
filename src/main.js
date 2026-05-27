@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { SceneEngine } from './scene-engine.js';
 import { SensorStabilityDetector } from './sensor-stability.js';
 import { GenerativeAPI } from './api.js';
@@ -25,10 +26,36 @@ class AppController {
     this.isEvaluating = false;
 
     this.initUI();
+    this.initOrientationSensors();
   }
 
   initUI() {
     document.getElementById('start-btn').addEventListener('click', this.startSession.bind(this));
+    
+    const manualBtn = document.getElementById('manual-capture-btn');
+    if (manualBtn) {
+      manualBtn.addEventListener('click', (event) => {
+        event.stopPropagation(); // Avoid triggering placement click
+        if (this.sceneEngine && this.sceneEngine.isAnchored) {
+          this.executeVisualCapture();
+        } else {
+          alert("Please place the pump model on your desk first!");
+        }
+      });
+    }
+  }
+
+  initOrientationSensors() {
+    window.addEventListener('deviceorientation', (event) => {
+      if (this.sceneEngine && this.sceneEngine.isFallbackMode && !this.sceneEngine.isAnchored) {
+        // Map pitch (beta) and yaw (alpha) rotation to camera rotation
+        const alpha = event.alpha ? THREE.MathUtils.degToRad(event.alpha) : 0;
+        const beta = event.beta ? THREE.MathUtils.degToRad(event.beta) : 0;
+        
+        // Simple perspective rotation to follow device orientation
+        this.sceneEngine.camera.rotation.set(beta - Math.PI / 2, 0, alpha);
+      }
+    });
   }
 
   async startSession() {
@@ -55,7 +82,7 @@ class AppController {
     this.isRecording = true;
     this.generateExpertReferenceTrajectory();
     
-    // Bind main WebXR Loop
+    // Bind main WebXR/requestAnimationFrame Loop
     this.sceneEngine.renderer.setAnimationLoop(this.tick.bind(this));
   }
 
@@ -149,10 +176,26 @@ class AppController {
     stepDisp.className = "text-xs text-yellow-400 mt-1 font-semibold animate-pulse";
 
     // Grab raw context canvas frames
-    const rawFrame = this.sceneEngine.renderer.domElement.toDataURL('image/jpeg', 0.85);
+    let rawFrame;
+    if (this.sceneEngine.isFallbackMode && this.sceneEngine.videoElement) {
+      // In fallback mode, compile composite canvas (camera feed + 3D layer)
+      const captureCanvas = document.createElement('canvas');
+      captureCanvas.width = this.sceneEngine.renderer.domElement.width;
+      captureCanvas.height = this.sceneEngine.renderer.domElement.height;
+      const ctx = captureCanvas.getContext('2d');
+      
+      // Draw background camera frame
+      ctx.drawImage(this.sceneEngine.videoElement, 0, 0, captureCanvas.width, captureCanvas.height);
+      // Draw Three.js layer
+      ctx.drawImage(this.sceneEngine.renderer.domElement, 0, 0, captureCanvas.width, captureCanvas.height);
+      rawFrame = captureCanvas.toDataURL('image/jpeg', 0.85);
+    } else {
+      rawFrame = this.sceneEngine.renderer.domElement.toDataURL('image/jpeg', 0.85);
+    }
+    
     const base64Data = rawFrame.replace(/^data:image\/jpeg;base64,/, "");
-
     const activeStepTask = this.steps[this.currentStepIndex];
+    
     const evaluation = await this.api.verifyVisualState(base64Data, activeStepTask);
 
     if (evaluation.assembly_step_valid) {
@@ -205,13 +248,13 @@ class AppController {
 window.addEventListener('DOMContentLoaded', () => {
   // Setup hit-testing interaction target for anchoring the spatial pump mesh
   window.addEventListener('click', (event) => {
-    // Avoid registration if start button or overlay was clicked
-    if (event.target && (event.target.id === 'start-btn' || event.target.id === 'api-key-input')) {
+    // Avoid registration if start button, key input, or manual capture button was clicked
+    if (event.target && (event.target.id === 'start-btn' || event.target.id === 'api-key-input' || event.target.id === 'manual-capture-btn')) {
       return;
     }
-    if (window.app && window.app.sceneEngine && window.app.sceneEngine.xrSession) {
+    if (window.app && window.app.sceneEngine) {
       const se = window.app.sceneEngine;
-      if (!se.isAnchored && se.reticle.visible) {
+      if (!se.isAnchored && (se.isFallbackMode || (se.xrSession && se.reticle.visible))) {
         se.buildIndustrialPumpModel();
         window.app.currentStepIndex = 1;
         document.getElementById('step-display').innerText = `Step 2: ${window.app.steps[1]}`;

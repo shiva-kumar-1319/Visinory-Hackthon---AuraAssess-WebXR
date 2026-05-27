@@ -13,6 +13,8 @@ export class SceneEngine {
     this.assemblyModel = null;
     this.isAnchored = false;
     this.lightProbe = null;
+    this.isFallbackMode = false;
+    this.videoElement = null;
 
     this.initRenderer();
     this.setupScene();
@@ -51,33 +53,104 @@ export class SceneEngine {
   }
 
   async startWebXR() {
-    const sessionInit = { requiredFeatures: ['hit-test', 'light-estimation'] };
-    const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
-    this.xrSession = session;
-    this.renderer.xr.setSession(session);
-
-    const refSpace = await session.requestReferenceSpace('viewer');
-    this.hitTestSource = await session.requestHitTestSource({ space: refSpace });
-    this.localReferenceSpace = await session.requestReferenceSpace('local');
-
-    // Light estimation subscription
-    if (typeof session.requestLightProbe === 'function') {
-      try {
-        const lightProbeSystem = await session.requestLightProbe();
-        this.lightProbe = lightProbeSystem;
-      } catch (err) {
-        console.warn("Failed to request WebXR light probe:", err);
+    try {
+      if (!navigator.xr || typeof navigator.xr.isSessionSupported !== 'function') {
+        throw new Error('WebXR not available in this browser environment.');
       }
+
+      const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
+      if (!isSupported) {
+        throw new Error('Immersive AR session is not supported on this device.');
+      }
+
+      const sessionInit = { requiredFeatures: ['hit-test', 'light-estimation'] };
+      const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
+      this.xrSession = session;
+      this.renderer.xr.setSession(session);
+
+      const refSpace = await session.requestReferenceSpace('viewer');
+      this.hitTestSource = await session.requestHitTestSource({ space: refSpace });
+      this.localReferenceSpace = await session.requestReferenceSpace('local');
+
+      // Light estimation subscription
+      if (typeof session.requestLightProbe === 'function') {
+        try {
+          const lightProbeSystem = await session.requestLightProbe();
+          this.lightProbe = lightProbeSystem;
+        } catch (err) {
+          console.warn("Failed to request WebXR light probe:", err);
+        }
+      }
+
+      session.addEventListener('end', () => {
+        this.xrSession = null;
+        this.hitTestSource = null;
+      });
+
+      this.isFallbackMode = false;
+    } catch (err) {
+      console.warn('WebXR start failed or unsupported — launching Camera Fallback Mode:', err.message);
+      await this.startFallbackCameraMode();
+    }
+  }
+
+  async startFallbackCameraMode() {
+    this.isFallbackMode = true;
+    this.isAnchored = false;
+
+    // Create full screen background video element for camera feed
+    this.videoElement = document.createElement('video');
+    this.videoElement.autoplay = true;
+    this.videoElement.playsInline = true;
+    this.videoElement.muted = true;
+    this.videoElement.style.position = 'absolute';
+    this.videoElement.style.top = '0';
+    this.videoElement.style.left = '0';
+    this.videoElement.style.width = '100%';
+    this.videoElement.style.height = '100%';
+    this.videoElement.style.objectFit = 'cover';
+    this.videoElement.style.zIndex = '0';
+    
+    // Insert background video before canvas container in the DOM
+    this.container.parentNode.insertBefore(this.videoElement, this.container);
+    
+    // Force canvas and container transparent overlays
+    this.container.style.zIndex = '2';
+    this.renderer.setClearColor(0x000000, 0);
+
+    // Request back-facing camera streams
+    try {
+      const constraints = {
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.videoElement.srcObject = stream;
+    } catch (err) {
+      console.warn("Camera hardware access denied or unavailable:", err);
+      this.renderer.setClearColor(0x0b0f19, 1); // Restore solid background
     }
 
-    session.addEventListener('end', () => {
-      this.xrSession = null;
-      this.hitTestSource = null;
-    });
+    // Set up standard 3D reticle directly in front of the camera view
+    this.reticle.position.set(0, -0.4, -1.2);
+    this.reticle.rotation.x = -Math.PI / 2.5;
+    this.reticle.visible = true;
+
+    // Add a helper grid to visualize space
+    const gridHelper = new THREE.GridHelper(10, 10, 0x4f46e5, 0x1e293b);
+    gridHelper.position.y = -0.5;
+    gridHelper.position.z = -1.2;
+    this.scene.add(gridHelper);
+
+    // Update screen instructions
+    const prompt = document.getElementById('reticle-indicator');
+    if (prompt) {
+      prompt.classList.remove('hidden');
+      const text = prompt.querySelector('p');
+      if (text) text.innerText = "Tap screen to place pump on your desk";
+    }
   }
 
   buildIndustrialPumpModel() {
-    // Using InstancedMesh for low-level batching optimization of fasteners
     this.assemblyModel = new THREE.Group();
 
     const castIronMat = new THREE.MeshStandardMaterial({ color: 0x4a5568, roughness: 0.6, metalness: 0.8 });
@@ -127,7 +200,14 @@ export class SceneEngine {
   }
 
   updateXR(frame) {
-    if (!this.xrSession) return;
+    if (this.isFallbackMode) {
+      if (this.isAnchored && this.shaftMesh) {
+        this.shaftMesh.rotation.y += 0.02;
+      }
+      return;
+    }
+
+    if (!this.xrSession || !frame) return;
 
     if (!this.isAnchored && this.hitTestSource) {
       const hitTestResults = frame.getHitTestResults(this.hitTestSource);
