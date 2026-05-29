@@ -44,26 +44,26 @@ AuraAssess WebXR is a zero-install, browser-based vocational skill evaluation pl
 
 To maintain strict objectivity, candidate skill levels are scored using separate physical and visual parameters.
 
-### 1. Kinematic Spatial Path Efficiency ($E_{\text{path}}$)
+### 1. Kinematic Spatial Path Efficiency (**E**<sub>path</sub>)
 This metric scores how closely the candidate’s movement paths follow the baseline coordinate trajectory of an expert:
 
-$$E_{\text{path}} = \exp\left( -\gamma \int_{t=0}^{T} \left\| \mathbf{x}_{\text{user}}(t) - \mathbf{x}_{\text{expert}}(t) \right\|_2 \, dt \right)$$
+$$E_{\text{path}} = e^{-\gamma \int_{0}^{T} \|\mathbf{x}_{\text{user}}(t) - \mathbf{x}_{\text{expert}}(t)\|_2 dt}$$
 
-Where $\mathbf{x}_{\text{user}}(t)$ and $\mathbf{x}_{\text{expert}}(t)$ are 3D position matrices mapped over testing period $T$, and $\gamma$ is a tracking normalizer.
+Where **x**<sub>user</sub>(*t*) and **x**<sub>expert</sub>(*t*) are 3D position matrices mapped over testing period *T*, and **&gamma;** (gamma) is a tracking normalizer.
 
-### 2. Physical Acceleration Stabilization Variance ($\text{Var}(\|a\|)$)
-To protect bandwidth and prevent blurry images, camera capture only fires when device motion remains steady within a $500\text{ ms}$ threshold:
+### 2. Physical Acceleration Stabilization Variance (Var(||*a*||))
+To protect bandwidth and prevent blurry images, camera capture only fires when device motion remains steady within a 500 ms threshold:
 
-$$\text{Var}(\|a\|) = \frac{1}{M}\sum_{i=1}^{M} (\|a_i\| - \mu)^2$$
+$$\sigma^2 = \frac{1}{M}\sum_{i=1}^{M} (\|a_i\| - \mu)^2$$
 
-Where $\|a_i\|$ is the acceleration magnitude at frame $i$, $\mu$ is the window average, and $M$ is the sliding limit ($30\text{ frames}$).
+Where ||*a*<sub>i</sub>|| is the acceleration magnitude at frame *i*, &mu; (mu) is the window average, and *M* is the sliding limit (30 frames).
 
-### 3. Composite Assessment Grade ($G_{\text{composite}}$)
+### 3. Composite Assessment Grade (**G**<sub>composite</sub>)
 The overall rating is calculated by balancing kinetic movement speed with target execution accuracy:
 
 $$G_{\text{composite}} = \alpha \cdot E_{\text{path}} + (1 - \alpha) \cdot A_{\text{visual}}$$
 
-Where $\alpha$ is a weighting coefficient customized for specific industrial job criteria.
+Where **&alpha;** (alpha) is a weighting coefficient customized for specific industrial job criteria.
 
 ---
 
