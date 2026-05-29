@@ -15,7 +15,8 @@ The running application on your mobile device (pointing at target monitors) demo
 *   **Sensor Validation**: The phone's gyroscope and accelerometer sensors calculate a physical motion variance below the threshold of $0.04\text{ m/s}^2$, displaying a green **STABLE** state on the HUD and unlocking the auto-evaluation sequence.
 
 ---
-[PASTE NEUROSURGERY SESSION SCREENSHOT (IMAGE 1) HERE]
+<img width="738" height="1600" alt="WhatsApp Image 2026-05-29 at 10 39 34" src="https://github.com/user-attachments/assets/ea166189-da3f-46d2-bb2d-c696625f8fd0" />
+
 ---
 
 ### 2. Aviation Cockpit Checklist Assessment (Image 2 Diagnostics)
@@ -25,7 +26,8 @@ The running application on your mobile device (pointing at target monitors) demo
 *   **Kinematic Path Scoring**: As the candidate aligns the phone over the cockpit switch, the coordinate engine tracks hand translation vectors, calculating a live Kinematic Path Efficiency of 87.7%. This proves that the 3D trajectory tracking algorithm is actively measuring candidate speed and precision.
 
 ---
-[PASTE AVIATION COCKPIT SESSION SCREENSHOT (IMAGE 2) HERE]
+<img width="738" height="1600" alt="WhatsApp Image 2026-05-29 at 10 39 34 (1)" src="https://github.com/user-attachments/assets/afed7b03-f934-4c78-9266-6d6c45ea44e0" />
+
 ---
 
 ---
