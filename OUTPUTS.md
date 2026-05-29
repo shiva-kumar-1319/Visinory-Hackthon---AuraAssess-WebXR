@@ -14,7 +14,9 @@ The running application on your mobile device (pointing at target monitors) demo
 *   **Core Execution**: The Three.js engine initializes a WebGL canvas and projects a dark-gray 3D virtual cylinder (the anchor geometry) directly over the anatomical brain targets.
 *   **Sensor Validation**: The phone's gyroscope and accelerometer sensors calculate a physical motion variance below the threshold of $0.04\text{ m/s}^2$, displaying a green **STABLE** state on the HUD and unlocking the auto-evaluation sequence.
 
-![Neurosurgical Workspace Assessment (Image 1)](./images/neurosurgery_session.png)
+---
+[PASTE NEUROSURGERY SESSION SCREENSHOT (IMAGE 1) HERE]
+---
 
 ### 2. Aviation Cockpit Checklist Assessment (Image 2 Diagnostics)
 
@@ -22,7 +24,9 @@ The running application on your mobile device (pointing at target monitors) demo
 *   **Core Execution**: The HUD successfully displays the current exam instruction: "Step 2: Verify Rotor Casing Alignment".
 *   **Kinematic Path Scoring**: As the candidate aligns the phone over the cockpit switch, the coordinate engine tracks hand translation vectors, calculating a live Kinematic Path Efficiency of 87.7%. This proves that the 3D trajectory tracking algorithm is actively measuring candidate speed and precision.
 
-![Aviation Cockpit Checklist Assessment (Image 2)](./images/cockpit_session.png)
+---
+[PASTE AVIATION COCKPIT SESSION SCREENSHOT (IMAGE 2) HERE]
+---
 
 ---
 
