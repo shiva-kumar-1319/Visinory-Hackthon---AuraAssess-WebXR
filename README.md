@@ -77,18 +77,7 @@ Mobile web systems have limited resources. AuraAssess WebXR achieves a locked $6
 
 ---
 
-## 🎯 Judges' Rubric Alignment Matrix
-
-AuraAssess WebXR iys engineered to directly match the 25-mark evaluation criteria for a top-three finish:
-
-| Scoring Criteria | Target Performance Criteria | Built-In System Strategy |
-| :--- | :--- | :--- |
-| **Novelty** | Features which are never seen before. On par with Global standards. | Brings automatic kinematic and spatial movement scoring to traditional web-based recruitment platforms. |
-| **Usability** | Running Smooth without user intervention. | Zero-install. Launches directly from a web link, using device-side stability checks to capture images automatically without manual user capture inputs. |
-| **Innovation** | Solves many Real world problems and use cases at scale. | Solves the challenge of evaluating manual vocational skills remotely, providing scalable pre-hiring validation for medical, aerospace, and industrial sectors. |
-| **Documentation Quality** | Detailed Documentation on the Process, Tech Stack, New Insights, Justifications, ease, clarity and details for other developers. | Fully documented README outlining system maps, core math formulas, and optimizations alongside clean, modular, production-ready JavaScript code. |
-
----
+ 
 
 ## 📝 Technical & API Specifications
 
