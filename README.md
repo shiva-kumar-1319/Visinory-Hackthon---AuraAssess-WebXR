@@ -1,6 +1,8 @@
 # AuraAssess WebXR | Mercer Mettl VISIONARY Hackathon 2.0
 
 Live Access link of App: https://auraassess-webxr.web.app
+
+
 PPT link: https://docs.google.com/presentation/d/14LREXdYD9kksankqFoH4QtaQezAF1axc/edit?usp=sharing&ouid=106167570344382569655&rtpof=true&sd=true
 
 AuraAssess WebXR is a zero-install, browser-based vocational skill evaluation platform that turns physical spaces into high-fidelity candidate testing environments. The system uses spatial telemetry, edge stability computations, and cloud artificial intelligence to automate hands-on skill scoring for technical fields.
