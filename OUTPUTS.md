@@ -1,6 +1,6 @@
 # Live Artifact Showcase & Validation Outputs
 
-This document serves as the official validation registry for Shiva Kumar Naidu's AuraAssess WebXR platform. It maps the visual, sensor, and AI outputs captured during the live testing sessions hosted at `https://auraassess-webxr.web.app` and verified in the submission screenshots.
+This document serves as the official validation registry for Shiva Kumar Naidu's AuraAssess WebXR platform. It maps the visual, sensor, and AI outputs captured during the live testing sessions hosted at https://rae-webxr.web.app and verified in the submission screenshots.
 
 ---
 
@@ -12,13 +12,17 @@ The running application on your mobile device (pointing at target monitors) demo
 
 *   **Target Image**: A high-definition surgical view of an active open-skull brain procedure.
 *   **Core Execution**: The Three.js engine initializes a WebGL canvas and projects a dark-gray 3D virtual cylinder (the anchor geometry) directly over the anatomical brain targets.
-*   **Sensor Validation**: The phone's gyroscope and accelerometer sensors calculate a physical motion variance below the threshold of 0.04 m/s<sup>2</sup>, displaying a green **STABLE** state on the HUD and unlocking the auto-evaluation sequence.
+*   **Sensor Validation**: The phone's gyroscope and accelerometer sensors calculate a physical motion variance below the threshold of $0.04\text{ m/s}^2$, displaying a green **STABLE** state on the HUD and unlocking the auto-evaluation sequence.
+
+![Neurosurgical Workspace Assessment (Image 1)](./images/neurosurgery_session.png)
 
 ### 2. Aviation Cockpit Checklist Assessment (Image 2 Diagnostics)
 
 *   **Target Image**: A first-person cockpit control panel with a hand pointing to an emergency fuel cutoff switch.
 *   **Core Execution**: The HUD successfully displays the current exam instruction: "Step 2: Verify Rotor Casing Alignment".
 *   **Kinematic Path Scoring**: As the candidate aligns the phone over the cockpit switch, the coordinate engine tracks hand translation vectors, calculating a live Kinematic Path Efficiency of 87.7%. This proves that the 3D trajectory tracking algorithm is actively measuring candidate speed and precision.
+
+![Aviation Cockpit Checklist Assessment (Image 2)](./images/cockpit_session.png)
 
 ---
 
@@ -30,7 +34,7 @@ The Head-Up Display (HUD) visible in your live app screenshots features a series
 *   **Kinematic Path Efficiency Card**: Displays the live, calculated score (initialized at 100.0% in Image 1 and transitioning to 87.7% in Image 2) based on coordinate path deviation.
 *   **Stabilization Engine Filter Bar**: Displays the real-time variance of the phone's physical movement. If the candidate holds their phone steady, the progress bar fills up green and displays **STABLE**.
 *   **Verify Step Manually Button**: A purple UI trigger that allows candidates to force an assessment pass if network connectivity is interrupted during testing.
-*   **Composite Skill Score Card**: Displays the final, weighted average score (e.g., 95.1 / 100) upon completing all steps.
+*   **Composite Skill Score Card**: Displays the final, weighted average score (e.g., 85.4 / 100) upon completing all steps.
 
 ---
 
