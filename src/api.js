@@ -32,7 +32,32 @@ export class GenerativeAPI {
         }
       ],
       generationConfig: {
-        responseMimeType: "application/json"
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            assembly_step_valid: {
+              type: "BOOLEAN",
+              description: "True if the candidate's assembly step is visually correct and aligned, false otherwise."
+            },
+            confidence_score: {
+              type: "NUMBER",
+              description: "VLM grading confidence level between 0.0 and 1.0."
+            },
+            feedback_message: {
+              type: "STRING",
+              description: "Structured evaluation feedback explaining the rationale of visual grading and helpful instructions for corrections if needed."
+            },
+            identified_errors: {
+              type: "ARRAY",
+              items: {
+                type: "STRING"
+              },
+              description: "List of specific observed assembly errors."
+            }
+          },
+          required: ["assembly_step_valid", "confidence_score", "feedback_message", "identified_errors"]
+        }
       }
     };
 

@@ -79,7 +79,7 @@ Mobile web systems have limited resources. AuraAssess WebXR achieves a locked $6
 
 ## 🎯 Judges' Rubric Alignment Matrix
 
-AuraAssess WebXR is engineered to directly match the 25-mark evaluation criteria for a top-three finish:
+AuraAssess WebXR iys engineered to directly match the 25-mark evaluation criteria for a top-three finish:
 
 | Scoring Criteria | Target Performance Criteria | Built-In System Strategy |
 | :--- | :--- | :--- |
@@ -87,3 +87,77 @@ AuraAssess WebXR is engineered to directly match the 25-mark evaluation criteria
 | **Usability** | Running Smooth without user intervention. | Zero-install. Launches directly from a web link, using device-side stability checks to capture images automatically without manual user capture inputs. |
 | **Innovation** | Solves many Real world problems and use cases at scale. | Solves the challenge of evaluating manual vocational skills remotely, providing scalable pre-hiring validation for medical, aerospace, and industrial sectors. |
 | **Documentation Quality** | Detailed Documentation on the Process, Tech Stack, New Insights, Justifications, ease, clarity and details for other developers. | Fully documented README outlining system maps, core math formulas, and optimizations alongside clean, modular, production-ready JavaScript code. |
+
+---
+
+## 📝 Technical & API Specifications
+
+To ensure robust schema safety and strict visual data typing for judges' review, AuraAssess WebXR implements compile-time type interfaces and strict API response schemas.
+
+### 1. TypeScript Interface Definitions
+
+The following interface is defined in [types.ts](file:///c:/Users/kaval/Desktop/Visionary%20Hackathon/src/types.ts) to guarantee type safety when handling cloud model visual evaluations:
+
+```typescript
+export interface AIEvaluationResponse {
+  /**
+   * True if the candidate has completed the current assembly step correctly 
+   * according to industrial specifications, false otherwise.
+   */
+  assembly_step_valid: boolean;
+
+  /**
+   * A float value from 0.0 to 1.0 representing the VLM's confidence 
+   * in its visual assessment.
+   */
+  confidence_score: number;
+
+  /**
+   * Detailed explanation of the visual validation result, or constructive 
+   * feedback detailing what corrections the candidate must make.
+   */
+  feedback_message: string;
+
+  /**
+   * List of specific assembly errors observed (e.g., "rotor casing misaligned").
+   */
+  identified_errors: string[];
+}
+```
+
+### 2. Gemini 2.0 Strict `responseSchema` Configuration
+
+To force the Gemini VLM model to output structured JSON data conforming exactly to our types (rather than raw descriptive text), we pass this strict OpenAPI schema payload in the `generationConfig` parameter during the API request:
+
+```json
+{
+  "type": "OBJECT",
+  "properties": {
+    "assembly_step_valid": {
+      "type": "BOOLEAN",
+      "description": "True if the candidate's assembly step is visually correct and aligned, false otherwise."
+    },
+    "confidence_score": {
+      "type": "NUMBER",
+      "description": "VLM grading confidence level between 0.0 and 1.0."
+    },
+    "feedback_message": {
+      "type": "STRING",
+      "description": "Structured evaluation feedback explaining the rationale of visual grading and helpful instructions for corrections if needed."
+    },
+    "identified_errors": {
+      "type": "ARRAY",
+      "items": {
+        "type": "STRING"
+      },
+      "description": "List of specific observed assembly errors."
+    }
+  },
+  "required": [
+    "assembly_step_valid",
+    "confidence_score",
+    "feedback_message",
+    "identified_errors"
+  ]
+}
+```
